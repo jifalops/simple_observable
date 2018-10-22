@@ -1,0 +1,11 @@
+name: simple_observable
+description: A minimal observable and debouncer that works with callbacks, Futures, Streams, or any combination of the three.
+version: 0.1.0
+author: Jacob Phillips <jifalops@gmail.com>
+homepage: https://github.com/jifalops/simple_observable
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dev_dependencies:
+  test: ^1.0.0
