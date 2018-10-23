@@ -19,6 +19,9 @@ class SimpleObservable<T> {
     Future.delayed(Duration(microseconds: 1), () => _notify(val));
   }
 
+  /// Alias for [value] setter. Good for passing to a Future or Stream.
+  void setValue(T val) => value = val;
+
   void _notify(T val) {
     if (onValue != null) onValue(val);
     // Completing with a microtask allows a new completer to be constructed
