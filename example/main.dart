@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:simple_observable/simple_observable.dart';
 
 void main() {
@@ -29,6 +30,7 @@ void main() {
   Future.delayed(Duration(milliseconds: 1000)).then((_) async {
     /// Cancels the above timer.
     timer.cancel();
+
     /// Make another change after the debouncer emits its value.
     await Future.delayed(Duration(milliseconds: 500));
     debouncer.value = 'hi';
@@ -36,6 +38,14 @@ void main() {
 
   // Multiple listeners are supported.
   debouncer.values.listen((value) => print('Stream2: $value'));
+
+  // Transforming the stream.
+  debouncer.values
+      .transform<List<String>>(StreamTransformer.fromHandlers(
+          handleData: (value, sink) => sink.add(['Transformed', value])))
+      .listen(print);
+
+  funWithRandom();
 }
 
 void printCallback(String value) => print('Callback: $value');
@@ -45,6 +55,23 @@ void printFuture(SimpleObservable obs) => obs.nextValue.then((value) {
       printFuture(obs);
     });
 
+void funWithRandom() async {
+  final d = Debouncer<int>(Duration(milliseconds: 250));
+  final rng = Random();
+  int i = 0;
+  int count = 0;
+  d.values.listen((value) {
+    double fraction = ((++count / value) * 1000).round() / 1000;
+    print('count: $count, current: $value, pct: $fraction');
+    if ((count >= 25 && (fraction > 0.27 || fraction < 0.23)) || count >= 100)
+      d.cancel();
+  });
+  while (!d.canceled) {
+    await Future.delayed(Duration(milliseconds: 100 + rng.nextInt(200)));
+    d.value = ++i;
+  }
+  print('Done.');
+}
 
 // Output:
 //
@@ -61,7 +88,11 @@ void printFuture(SimpleObservable obs) => obs.nextValue.then((value) {
 // Future: xxxxx
 // Stream: xxxxx
 // Stream2: xxxxx
+// [Transformed, xxxxx]
 // Callback: hi
 // Future: hi
 // Stream: hi
 // Stream2: hi
+// [Transformed, hi]
+//
+// Random output...
