@@ -43,7 +43,9 @@ class SimpleObservable<T> {
 
   Future<T> get nextValue => _completer.future;
   Stream<T> get values async* {
-    while (!canceled) yield await nextValue;
+    while (!canceled) {
+      yield await nextValue;
+    }
   }
 
   /// Permanently disables this observable. Further changes to [value] will be
