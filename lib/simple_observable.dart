@@ -84,3 +84,34 @@ class Debouncer<T> extends SimpleObservable<T> {
     _timer?.cancel();
   }
 }
+
+/// Throttles value changes by updating [onValue], [nextValue], and [values]
+/// once per [duration] at most.
+class Throttle<T> extends SimpleObservable<T> {
+  Throttle(this.duration, [void Function(T value) onValue]) : super(onValue);
+  final Duration duration;
+  Timer _timer;
+
+  /// The most recent value, without waiting for the throttle timer to expire.
+  @override
+  T get value => super.value;
+
+  set value(T val) {
+    if (!canceled) {
+      _value = val;
+      _timer ??= Timer(duration, () {
+        if (!canceled) {
+          _timer = null;
+          _notify(value);
+        }
+      });
+    }
+  }
+
+  @override
+  @mustCallSuper
+  void cancel() {
+    super.cancel();
+    _timer?.cancel();
+  }
+}

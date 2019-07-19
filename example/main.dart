@@ -23,7 +23,7 @@ void main() {
 
   /// Change the value multiple times before the debounce timer runs out.
   debouncer.value = '';
-  final timer = Timer.periodic(Duration(milliseconds: 200), (_) {
+  var timer = Timer.periodic(Duration(milliseconds: 200), (_) {
     debouncer.value += 'x';
   });
 
@@ -46,6 +46,16 @@ void main() {
       .listen(print);
 
   funWithRandom();
+
+  /// Use of the Throttle class.
+  final throttled = Throttle<int>(Duration(milliseconds: 1000), (value) {
+    print('Throttled: $value');
+  });
+  throttled.value = 0;
+  Timer.periodic(Duration(milliseconds: 100), (timer) {
+    throttled.value++;
+    if (throttled.value > 100) timer.cancel();
+  });
 }
 
 void printCallback(String value) => print('Callback: $value');
