@@ -1,3 +1,8 @@
+@deprecated
+
+/// Please use <a href="https://pub.dev/packages/debounce_throttle">debounce_throttle</a> instead.
+library simple_observable;
+
 import 'dart:async';
 import 'package:meta/meta.dart';
 

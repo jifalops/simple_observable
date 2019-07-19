@@ -1,4 +1,9 @@
-# simple_observable
+
+# Deprecated
+
+Please use <a href="https://pub.dev/packages/debounce_throttle">debounce_throttle</a> instead.
+
+# ~~simple_observable~~
 
 A debouncer and throttle that works with `Future`, `Stream`, and callbacks.
 

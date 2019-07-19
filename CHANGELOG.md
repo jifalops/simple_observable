@@ -1,3 +1,7 @@
+## [0.3.0+2] - July 19, 2019
+
+- Deprecate library in favor of new name, `debounce_throttle`.
+
 ## [0.3.0] - July 19, 2019
 
 - Change argument list to allow passing an initial value.
