@@ -1,108 +1,68 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:math';
 import 'package:simple_observable/simple_observable.dart';
 
-void main() {
-  /// Use of the SimpleObservable base class.
-  final observable = SimpleObservable<String>(printCallback);
-  observable.values.listen(printStream);
+final random = Random();
 
-  /// Recursively listens to [nextValue] and prints changes.
-  printFuture(observable);
-
-  observable.value = 'a';
-  observable.value = 'b';
-  observable.value = 'c';
-
-  /// Use of the Debouncer class.
-
+void main() async {
   final debouncer =
-      Debouncer<String>(Duration(milliseconds: 250), printCallback);
-  debouncer.values.listen(printStream);
-  printFuture(debouncer);
+      Debouncer<String>(Duration(milliseconds: 300), onChanged: debounceTick);
+  final throttle =
+      Throttle<String>(Duration(milliseconds: 300), onChanged: throttleTick);
 
-  /// Change the value multiple times before the debounce timer runs out.
-  debouncer.value = '';
-  var timer = Timer.periodic(Duration(milliseconds: 200), (_) {
-    debouncer.value += 'x';
-  });
+  void doChange() {
+    changeTick();
+    debouncer.value = '';
+    throttle.value = '';
+  }
 
-  Future.delayed(Duration(milliseconds: 1000)).then((_) async {
-    /// Cancels the above timer.
-    timer.cancel();
+  startTicking();
 
-    /// Make another change after the debouncer emits its value.
-    await Future.delayed(Duration(milliseconds: 500));
-    debouncer.value = 'hi';
-  });
+  // Change frequently at first to show difference between debounce/throttle.
+  for (int i = 0; i < 10; i++) {
+    await Future.delayed(Duration(milliseconds: 50));
+    doChange();
+  }
 
-  // Multiple listeners are supported.
-  debouncer.values.listen((value) => print('Stream2: $value'));
-
-  // Transforming the stream.
-  debouncer.values
-      .transform<List<String>>(StreamTransformer.fromHandlers(
-          handleData: (value, sink) => sink.add(['Transformed', value])))
-      .listen(print);
-
-  funWithRandom();
-
-  /// Use of the Throttle class.
-  final throttled = Throttle<int>(Duration(milliseconds: 1000), (value) {
-    print('Throttled: $value');
-  });
-  throttled.value = 0;
-  Timer.periodic(Duration(milliseconds: 100), (timer) {
-    throttled.value++;
-    if (throttled.value > 100) timer.cancel();
-  });
+  while (true) {
+    // Wait 50 to 550 milliseconds.
+    await Future.delayed(Duration(milliseconds: 50 + random.nextInt(500)));
+    doChange();
+  }
 }
 
-void printCallback(String value) => print('Callback: $value');
-void printStream(String value) => print('Stream: $value');
-void printFuture(SimpleObservable obs) => obs.nextValue.then((value) {
-      print('Future: $value');
-      printFuture(obs);
+Timer startTicking() => Timer.periodic(Duration(milliseconds: 100), (timer) {
+      String changed = '', debounced = '', throttled = '';
+      ticks.forEach((tick) {
+        changed += tick.changed ? '-' : ' ';
+        debounced += tick.debounced ? 'D' : ' ';
+        throttled += tick.throttled ? 'T' : ' ';
+      });
+      if (Platform.isWindows) {
+        print(Process.runSync("cls", [], runInShell: true).stdout);
+      } else {
+        print(Process.runSync("clear", [], runInShell: true).stdout);
+      }
+      print('Tick     : ${'|' * ticks.length}');
+      print('Changed  : $changed');
+      print('Debounced: $debounced');
+      print('Throttled: $throttled');
+      if (ticks.length >= stdout.terminalColumns - 11) {
+        exit(0);
+      }
+      ticks.add(Tick());
     });
 
-void funWithRandom() async {
-  final d = Debouncer<int>(Duration(milliseconds: 250));
-  final rng = Random();
-  int i = 0;
-  int count = 0;
-  d.values.listen((value) {
-    double fraction = ((++count / value) * 1000).round() / 1000;
-    print('count: $count, current: $value, pct: $fraction');
-    if ((count >= 25 && (fraction > 0.27 || fraction < 0.23)) || count >= 100)
-      d.cancel();
-  });
-  while (!d.canceled) {
-    await Future.delayed(Duration(milliseconds: 100 + rng.nextInt(200)));
-    d.value = ++i;
-  }
-  print('Done.');
+/// For visual representation in the terminal.
+class Tick {
+  bool changed = false;
+  bool debounced = false;
+  bool throttled = false;
 }
 
-// Output:
-//
-// Callback: a
-// Future: a
-// Stream: a
-// Callback: b
-// Future: b
-// Stream: b
-// Callback: c
-// Future: c
-// Stream: c
-// Callback: xxxxx
-// Future: xxxxx
-// Stream: xxxxx
-// Stream2: xxxxx
-// [Transformed, xxxxx]
-// Callback: hi
-// Future: hi
-// Stream: hi
-// Stream2: hi
-// [Transformed, hi]
-//
-// Random output...
+final ticks = [Tick()];
+
+void changeTick() => ticks.last.changed = true;
+void debounceTick(String value) => ticks.last.debounced = true;
+void throttleTick(String value) => ticks.last.throttled = true;

@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'package:meta/meta.dart';
 
-/// A simple class that allows being notified of changes [value] via the
-/// [onValue] callback, the [nextValue] Future, or the [values] Stream.
-///
-/// Any combination of [onValue], [nextValue], and [values] can be used to
-/// listen for changes.
-///
-/// Once canceled, it cannot be reused. Instead, create another instance.
-class SimpleObservable<T> {
-  SimpleObservable([this.onValue]);
+typedef void _Callback<T>(T value);
 
-  final void Function(T value) onValue;
+/// Holds a value and notifies listeners whenever that value is set.
+///
+/// Listeners can use the [onChanged] callback, the [nextValue] Future, and/or
+/// the [values] Stream.
+class SimpleObservable<T> {
+  SimpleObservable({T initialValue, this.onChanged}) : _value = initialValue;
+
+  final _Callback<T> onChanged;
 
   var _completer = Completer<T>();
 
@@ -34,7 +33,7 @@ class SimpleObservable<T> {
   void setValue(T val) => value = val;
 
   void _notify(T val) {
-    if (onValue != null) onValue(val);
+    if (onChanged != null) onChanged(val);
     // Completing with a microtask allows a new completer to be constructed
     // before listeners of [nextValue] are called, allowing them to listen to
     // nextValue again if desired.
@@ -48,16 +47,17 @@ class SimpleObservable<T> {
   }
 
   /// Permanently disables this observable. Further changes to [value] will be
-  /// ignored, the outputs [onValue], [nextValue], and [values] will not be
+  /// ignored, the outputs [onChanged], [nextValue], and [values] will not be
   /// called again.
   @mustCallSuper
   void cancel() => _canceled = true;
 }
 
-/// Debounces value changes by updating [onValue], [nextValue], and [values]
+/// Debounces value changes by updating [onChanged], [nextValue], and [values]
 /// only after [duration] has elapsed without additional changes.
 class Debouncer<T> extends SimpleObservable<T> {
-  Debouncer(this.duration, [void Function(T value) onValue]) : super(onValue);
+  Debouncer(this.duration, {T initialValue, _Callback<T> onChanged})
+      : super(initialValue: initialValue, onChanged: onChanged);
   final Duration duration;
   Timer _timer;
 
@@ -85,10 +85,11 @@ class Debouncer<T> extends SimpleObservable<T> {
   }
 }
 
-/// Throttles value changes by updating [onValue], [nextValue], and [values]
+/// Throttles value changes by updating [onChanged], [nextValue], and [values]
 /// once per [duration] at most.
 class Throttle<T> extends SimpleObservable<T> {
-  Throttle(this.duration, [void Function(T value) onValue]) : super(onValue);
+  Throttle(this.duration, {T initialValue, _Callback<T> onChanged})
+      : super(initialValue: initialValue, onChanged: onChanged);
   final Duration duration;
   Timer _timer;
 

@@ -1,3 +1,8 @@
+## [0.3.0] - July 19, 2019
+
+- Change argument list to allow passing an initial value.
+- Updated example.
+
 ## [0.2.1] - July 19, 2019
 
 - Add [Throttle] class.
