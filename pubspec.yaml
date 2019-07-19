@@ -1,6 +1,6 @@
 name: simple_observable
 description: A debouncer and throttle that works with `Future`s, `Stream`s, and callbacks.
-version: 0.3.0
+version: 0.3.0+1
 author: Jacob Phillips <jifalops@gmail.com>
 homepage: https://github.com/jifalops/simple_observable
 

@@ -1,15 +1,21 @@
+// Example output:
+// Tick     : ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+// Changed  : ------- ---    -    -   -  -    -   -  -   - - -    - -  - -  --    - - --  -    -   --   - --   --  - --- -  -   -   -    --    -  - ---  -   --    -    -   -     - - -    -    -
+// Debounced:              D    D    D      D    D      D       D           D   D         D  D    D    D      D                D   D   D     D    D         D    D    D    D   D         D    D    D
+// Throttled:    T  T  T   T    T    T   T       T   T      T   T    T    T    T     T   T   T    T   T    T      T   T  T  T      T   T    T     T  T  T   T   T     T    T   T     T   T    T    T
+
 import 'dart:io';
 import 'dart:async';
 import 'dart:math';
 import 'package:simple_observable/simple_observable.dart';
-
-final random = Random();
 
 void main() async {
   final debouncer =
       Debouncer<String>(Duration(milliseconds: 300), onChanged: debounceTick);
   final throttle =
       Throttle<String>(Duration(milliseconds: 300), onChanged: throttleTick);
+
+  final random = Random();
 
   void doChange() {
     changeTick();
