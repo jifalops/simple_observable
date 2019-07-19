@@ -1,3 +1,7 @@
+## [0.2.1] - July 19, 2019
+
+- Add [Throttle] class.
+
 ## [0.2.0] - November 5, 2018
 
 * **breaking:** once canceled the observable/debouncer is no longer usable.
