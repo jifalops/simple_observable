@@ -15,11 +15,12 @@ void main() {
 }
 
 void printCallback(int value) => print('Callback: $value');
-void printFuture(Observable obs) => obs.nextValue.then((value) {
-      print('Future: $value');
-      printFuture(obs);
-    });
 void printStream(int value) => print('Stream: $value');
+void printFuture(Observable obs) async {
+  final value = await obs.nextValue;
+  print('Future: $value');
+  printFuture(obs);
+}
 
 // Output:
 //
