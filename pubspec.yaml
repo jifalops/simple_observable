@@ -1,6 +1,6 @@
 name: simple_observable
 description: Observe value changes using a Future, Stream, and/or a callback.
-version: 1.1.0
+version: 1.1.0+1
 author: Jacob Phillips <jifalops@gmail.com>
 homepage: https://github.com/jifalops/simple_observable
 
