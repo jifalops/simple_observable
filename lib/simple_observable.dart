@@ -1,21 +1,15 @@
-@deprecated
-
-/// Please use <a href="https://pub.dev/packages/debounce_throttle">debounce_throttle</a> instead.
-library simple_observable;
-
 import 'dart:async';
 import 'package:meta/meta.dart';
 
-typedef void _Callback<T>(T value);
-
-/// Holds a value and notifies listeners whenever that value is set.
-///
-/// Listeners can use the [onChanged] callback, the [nextValue] Future, and/or
-/// the [values] Stream.
+/// Observe value changes using a `Future`, `Stream`, and/or a callback.
 class SimpleObservable<T> {
-  SimpleObservable({T initialValue, this.onChanged}) : _value = initialValue;
+  SimpleObservable({T initialValue, this.onChanged, this.checkEquality = true})
+      : _value = initialValue;
 
-  final _Callback<T> onChanged;
+  /// If true, setting the [value] will only notifiy if the new value is different
+  /// than the current value.
+  final bool checkEquality;
+  final void Function(T value) onChanged;
 
   var _completer = Completer<T>();
 
@@ -27,17 +21,19 @@ class SimpleObservable<T> {
   /// The current value of this observable.
   T get value => _value;
   set value(T val) {
-    if (!canceled) {
+    if (!canceled && (!checkEquality || _value != val)) {
       _value = val;
       // Delaying notify() allows the Future and Stream to update correctly.
-      Future.delayed(Duration(microseconds: 1), () => _notify(val));
+      Future.delayed(Duration(microseconds: 1), () => notify(val));
     }
   }
 
   /// Alias for [value] setter. Good for passing to a Future or Stream.
   void setValue(T val) => value = val;
 
-  void _notify(T val) {
+  @protected
+  @mustCallSuper
+  void notify(T val) {
     if (onChanged != null) onChanged(val);
     // Completing with a microtask allows a new completer to be constructed
     // before listeners of [nextValue] are called, allowing them to listen to
@@ -58,85 +54,4 @@ class SimpleObservable<T> {
   /// called again.
   @mustCallSuper
   void cancel() => _canceled = true;
-}
-
-/// Debounces value changes by updating [onChanged], [nextValue], and [values]
-/// only after [duration] has elapsed without additional changes.
-class Debouncer<T> extends SimpleObservable<T> {
-  Debouncer(this.duration, {T initialValue, _Callback<T> onChanged})
-      : super(initialValue: initialValue, onChanged: onChanged);
-  final Duration duration;
-  Timer _timer;
-
-  /// The most recent value, without waiting for the debounce timer to expire.
-  @override
-  T get value => super.value;
-
-  set value(T val) {
-    if (!canceled) {
-      _value = val;
-      _timer?.cancel();
-      _timer = Timer(duration, () {
-        if (!canceled) {
-          _notify(value);
-        }
-      });
-    }
-  }
-
-  @override
-  @mustCallSuper
-  void cancel() {
-    super.cancel();
-    _timer?.cancel();
-  }
-}
-
-/// Throttles value changes by updating [onChanged], [nextValue], and [values]
-/// once per [duration] at most.
-class Throttle<T> extends SimpleObservable<T> {
-  Throttle(this.duration, {T initialValue, _Callback<T> onChanged})
-      : super(initialValue: initialValue, onChanged: onChanged);
-  final Duration duration;
-  Timer _timer;
-  bool _dirty = false;
-
-  /// The most recent value, without waiting for the throttle timer to expire.
-  @override
-  T get value => super.value;
-
-  set value(T val) {
-    if (!canceled) {
-      _value = val;
-      _dirty = true;
-      if (_timer == null) {
-        _notify(value);
-        _timer = _makeTimer();
-      }
-    }
-  }
-
-  Timer _makeTimer() => Timer(duration, () {
-        if (!canceled) {
-          if (_dirty) {
-            _timer = _makeTimer();
-            _notify(value);
-          } else {
-            _timer = null;
-          }
-        }
-      });
-
-  @override
-  void _notify(T val) {
-    _dirty = false;
-    super._notify(val);
-  }
-
-  @override
-  @mustCallSuper
-  void cancel() {
-    super.cancel();
-    _timer?.cancel();
-  }
 }

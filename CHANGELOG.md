@@ -1,3 +1,9 @@
+## [1.0.0] - August 4, 2019
+
+- Remove the Debouncer and Throttle classes.
+- Remove deprecations. This package will be a dependency of the
+`debounce_throttle` package instead. It has value as a stand alone package.
+
 ## [0.3.1] - July 19, 2019
 
 - Fix `Throttle`.
