@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 /// Observe value changes using a `Future`, `Stream`, and/or a callback.
-class SimpleObservable<T> {
-  SimpleObservable({T initialValue, this.onChanged, this.checkEquality = true})
+class Observable<T> {
+  Observable({T initialValue, this.onChanged, this.checkEquality = true})
       : _value = initialValue;
 
   /// If true, setting the [value] will only notifiy if the new value is different

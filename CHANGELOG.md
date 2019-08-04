@@ -1,3 +1,7 @@
+## [1.1.0] - August 4, 2019
+
+- Rename `SimpleObservable` to just `Observable`.
+
 ## [1.0.0] - August 4, 2019
 
 - Remove the Debouncer and Throttle classes.
