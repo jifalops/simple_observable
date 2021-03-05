@@ -3,13 +3,12 @@ import 'package:meta/meta.dart';
 
 /// Observe value changes using a `Future`, `Stream`, and/or a callback.
 class Observable<T> {
-  Observable({T initialValue, this.onChanged, this.checkEquality = true})
-      : _value = initialValue;
+  Observable({required T initialValue, this.onChanged, this.checkEquality = true}) : _value = initialValue;
 
   /// If true, setting the [value] will only notifiy if the new value is different
   /// than the current value.
   final bool checkEquality;
-  final void Function(T value) onChanged;
+  final void Function(T value)? onChanged;
 
   var _completer = Completer<T>();
 
@@ -24,7 +23,7 @@ class Observable<T> {
     if (!canceled && (!checkEquality || _value != val)) {
       _value = val;
       // Delaying notify() allows the Future and Stream to update correctly.
-      Future.delayed(Duration(microseconds: 1), () => notify(val));
+      Future.delayed(Duration.zero, () => notify(val));
     }
   }
 
@@ -34,12 +33,10 @@ class Observable<T> {
   @protected
   @mustCallSuper
   void notify(T val) {
-    if (onChanged != null) onChanged(val);
-    // Completing with a microtask allows a new completer to be constructed
-    // before listeners of [nextValue] are called, allowing them to listen to
-    // nextValue again if desired.
-    _completer.complete(Future.microtask(() => val));
+    if (onChanged != null) onChanged!(val);
+    final tmp = _completer;
     _completer = Completer<T>();
+    tmp.complete(val);
   }
 
   Future<T> get nextValue => _completer.future;

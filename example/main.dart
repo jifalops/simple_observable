@@ -2,8 +2,8 @@ import 'package:simple_observable/simple_observable.dart';
 
 // See also https://pub.dev/packages/debounce_throttle
 
-void main() {
-  final obs = Observable(initialValue: 0, onChanged: printCallback);
+void main() async {
+  final obs = Observable<int>(initialValue: 0, onChanged: printCallback);
   printFuture(obs);
   obs.values.listen(printStream);
 
@@ -12,14 +12,31 @@ void main() {
   obs.value = 3;
 
   while (obs.value < 10) obs.value += 1;
+
+  await Future.delayed(Duration.zero);
+  print('========nullable========');
+  withNullable();
 }
 
-void printCallback(int value) => print('Callback: $value');
-void printStream(int value) => print('Stream: $value');
+void printCallback(int? value) => print('Callback: $value');
+void printStream(int? value) => print('Stream: $value');
 void printFuture(Observable obs) async {
   final value = await obs.nextValue;
   print('Future: $value');
   printFuture(obs);
+}
+
+void withNullable() {
+  final obs = Observable<int?>(initialValue: null, onChanged: printCallback);
+  printFuture(obs);
+  obs.values.listen(printStream);
+
+  obs.value = 1;
+  obs.value = 2;
+  obs.value = null;
+  obs.value = 3;
+
+  while (obs.value! < 10) obs.value = obs.value! + 1;
 }
 
 // Output:
